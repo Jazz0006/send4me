@@ -1,4 +1,5 @@
 import socket
+import sys
 #import cowsay
 
 #cowsay.stegosaurus("YOU are outstanding!")
@@ -23,4 +24,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     #s.sendall(b'Hello World')
     #data = s.recv(1024)
 print("Close the socket")
+exit(0)
 #print('Received', repr(data))
