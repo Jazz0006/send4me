@@ -11,8 +11,7 @@ BUFFER_SIZE = 4096
 
 
 def get_local_ip_address():
-    host_name = socket.gethostname()
-    address = socket.gethostbyname(host_name)
+    address = [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
     return address
 
 def get_target_ip_address():
@@ -20,7 +19,7 @@ def get_target_ip_address():
         if not conf:
             return None
         else:
-            return conf.readline()
+            return conf.readline().strip()
 
 def receive_content():
     ip_address = get_local_ip_address()
@@ -83,6 +82,74 @@ def receive_content():
     print("Successfully received one file")
     print("close the socket")
 
+def send_files(target_ip, file_list):
+    file_amount = len(file_list)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.connect((target_ip, 9587))
+            print("Connect successfle")
+        except Exception as e:
+            print(f"Cannot connect to host: {target_ip}")
+            print("Please check the if the IP address specified is correct.")
+            exit(1)
+        
+        
+        print(f"There are {file_amount} files to be sent")
+        #pack thr file_amount into an 8-byte header
+        head_buffer = str(file_amount).encode() + b'\n'
+        head_size = len(head_buffer)
+        head_buffer += b'0' * ( 8 - head_size )
+        s.sendall(head_buffer)
+
+        print("Now opening file to be sent")
+        for filename in file_list:
+            #Get the size of the file, 
+            #Server need this number to know when to finish receiving one file
+            file_len = os.path.getsize(filename)
+            # send out file_to_send
+            with open(filename, "rb") as f:
+                if not f:
+                    print(f"Cannot open file: {filename}")
+                    exit(1)
+                head_buffer = filename.encode() + b'\n'
+                head_buffer += str(file_len).encode() + b'\n'
+                head_size = len(head_buffer)
+                if head_size > 64:
+                    print("File name is too long, or the size is too big, please use other tools to send this file")
+                    exit(1)
+                else:
+                    #Fill the header size to 64 byte
+                    head_buffer += b'0' * ( 64-head_size )
+                #Send the file name and its size, this header is 64 byte long:
+                
+                s.sendall(head_buffer)
+
+                print(f"Sending {filename}")
+                remain_size = file_len
+                while remain_size > BUFFER_SIZE:
+                    bytes_read = f.read(BUFFER_SIZE) 
+                    s.sendall(bytes_read)
+                    remain_size -= BUFFER_SIZE
+                bytes_read = f.read(remain_size) 
+                s.sendall(bytes_read)
+                print(f"Finished sending {filename}")
+
+def get_file_list(path):
+    file_list = []
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        file_list.extend(filenames)
+        break
+    #Remove two files: send4me.py and send4me.ini
+    if 'send4me.ini' in file_list:
+        file_list.remove('send4me.ini')
+    if 'send4me.py' in file_list:
+        file_list.remove('send4me.py')
+    #Remove hidden files:
+    file_list = [x for x in file_list if x[0]!='.']
+    return file_list
+    
+
 if len(sys.argv)==1: #There is no input argument
     #Get target IP address from configuration file
     target_ip = get_target_ip_address()
@@ -90,29 +157,9 @@ if len(sys.argv)==1: #There is no input argument
         print("Please specify the target IP address")
     else:
         #scan and get a list of files in current directory
-
-
-        #Connect to server
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.connect(('192.168.1.105', 9587))
-                print("Connect successfle")
-            except Exception as e:
-                print("Error in connecting to server")
-                print(e)
-                exit(1)
-            
-            # Send files to server:
-            print("Now opening the file to be sent")
-            with open("testingFile.txt", "rb") as f:
-                while True:
-                    bytes_read = f.read(BUFFER_SIZE) 
-                    if not bytes_read:
-                        break
-
-                    s.sendall(bytes_read)
-
-            print("Finished sending send4me.svg")
+        file_list = get_file_list('.')
+        #send files
+        send_files(target_ip, file_list)
 
 elif sys.argv[1] == "-listen": 
     receive_content()
@@ -120,60 +167,25 @@ elif sys.argv[1] == "-listen":
 elif sys.argv[1] == '-t': #specifying the target ip address
     target_ip = sys.argv[2]
     length_argv = len(sys.argv)
-    if length_argv > 3: # User specified the files to be sent
-        file_amount = length_argv - 3
+    if length_argv > 3: # User specified one or more files to be sent
+        file_list = []
+        for i in range(3, length_argv):
+            file_list.append(sys.argv[i])
+        
+        send_files(target_ip, file_list)
+        
+    else: #User did not specify the file to be sent, which mean all files in current folder should be sent
+        #scan and get a list of files in current directory
+        file_list = get_file_list('.')
+        #send files
+        send_files(target_ip, file_list)
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.connect((target_ip, 9587))
-                print("Connect successfle")
-            except Exception as e:
-                print(f"Cannot connect to host: {target_ip}")
-                print("Please check the if the IP address specified is correct.")
-                exit(1)
-            
-            file_amount = length_argv - 3
-            print(f"There are {file_amount} files to be sent")
-            #pack thr file_amount into an 8-byte header
-            head_buffer = str(file_amount).encode() + b'\n'
-            head_size = len(head_buffer)
-            head_buffer += b'0' * ( 8 - head_size )
-            s.sendall(head_buffer)
-
-            print("Now opening file to be sent")
-            for i in range(3, length_argv):
-                filename = sys.argv[i]
-                #Get the size of the file, 
-                #Server need this number to know when to finish receiving one file
-                file_len = os.path.getsize(filename)
-                # send out file_to_send
-                with open(filename, "rb") as f:
-                    if not f:
-                        print(f"Cannot open file: {filename}")
-                        exit(1)
-                    head_buffer = filename.encode() + b'\n'
-                    head_buffer += str(file_len).encode() + b'\n'
-                    head_size = len(head_buffer)
-                    if head_size > 64:
-                        print("File name is too long, or the size is too big, please use other tools to send this file")
-                        exit(1)
-                    else:
-                        #Fill the header size to 64 byte
-                        head_buffer += b'0' * ( 64-head_size )
-                    #Send the file name and its size, this header is 64 byte long:
-                    
-                    s.sendall(head_buffer)
-
-                    print(f"Sending {filename}")
-                    remain_size = file_len
-                    while remain_size > BUFFER_SIZE:
-                        bytes_read = f.read(BUFFER_SIZE) 
-                        s.sendall(bytes_read)
-                        remain_size -= BUFFER_SIZE
-                    bytes_read = f.read(remain_size) 
-                    s.sendall(bytes_read)
-                    print(f"Finished sending {filename}")
-
-    else: #Send files in current folder
-        #To do: same as no parameter case.
-        pass
+else: #user just specified the files to be sent
+    target_ip = get_target_ip_address()
+    length_argv = len(sys.argv)
+    #print(sys.argv)
+    file_list = []
+    for i in range(1, length_argv):
+        file_list.append(sys.argv[i])
+    #print(file_list)
+    send_files(target_ip, file_list)
