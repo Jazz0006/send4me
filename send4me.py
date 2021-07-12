@@ -22,6 +22,67 @@ def get_target_ip_address():
         else:
             return conf.readline()
 
+def receive_content():
+    ip_address = get_local_ip_address()
+    print(f"This computer's IP address is {ip_address}")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(('', 9587))                        
+        except Exception as e:
+            print("Error in creating socket")
+            print(e)
+            exit(1)
+
+        try:
+            s.listen()
+            print("Ready to receive files.")
+            print("Waiting for connection...")
+            print(f"To connect and send files, on the other computer, use: \n   send4me -t {ip_address}")
+            #print("After 5 minutes, this app will automatically exit")
+            print("Press Ctrl+C if you want to quit immediately\n\n")
+            #time.sleep(STANDBY_TIME)
+            #return False
+        except KeyboardInterrupt:
+            print("\n\n")
+            print("Socket has been closed.")
+            print("Thanks for using Send4Me. See you next time\n\n")
+            exit(1)
+
+        conn, addr = s.accept()
+        with conn:
+            print("Connected by", addr)
+
+            print("Now receiving the number of files:")
+            buffer = conn.recv(8)
+            l = buffer.decode().split()
+            rcv_file_amount = int(l[0])
+
+            for i in range(rcv_file_amount):
+                print("Now receiving file header")
+                buffer = conn.recv(64)
+                
+                l = buffer.decode().split()
+
+                file_name = l[0]
+                file_size = int(l[1])
+
+                print(file_name, file_size)
+
+                with open(file_name, "wb") as rf:
+                    remain_byte = file_size
+                    while remain_byte > BUFFER_SIZE:
+                        byte_read = conn.recv(BUFFER_SIZE)
+                        rf.write(byte_read)
+                        print("Writing to file")
+                        remain_byte -= BUFFER_SIZE
+
+                    #Receive the last packet
+                    byte_read = conn.recv(remain_byte)
+                    rf.write(byte_read)
+                print(f"Finished receiving {file_name}")
+    print("Successfully received one file")
+    print("close the socket")
+
 if len(sys.argv)==1: #There is no input argument
     #Get target IP address from configuration file
     target_ip = get_target_ip_address()
@@ -54,64 +115,13 @@ if len(sys.argv)==1: #There is no input argument
             print("Finished sending send4me.svg")
 
 elif sys.argv[1] == "-listen": 
-    ip_address = get_local_ip_address()
-    print(f"This computer's IP address is {ip_address}")
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        try:
-            s.bind(('', 9587))                        
-        except Exception as e:
-            print("Error in creating socket")
-            print(e)
-            exit(1)
-
-        try:
-            s.listen()
-            print("Ready to receive files.")
-            print("Waiting for connection...")
-            print(f"To connect and send files, on the other computer, use: \n   send4me -t {ip_address}")
-            #print("After 5 minutes, this app will automatically exit")
-            print("Press Ctrl+C if you want to quit immediately\n\n")
-            #time.sleep(STANDBY_TIME)
-            #return False
-        except KeyboardInterrupt:
-            print("\n\n")
-            print("Socket has been closed.")
-            print("Thanks for using Send4Me. See you next time\n\n")
-            exit(1)
-
-        conn, addr = s.accept()
-        with conn:
-            print("Connected by", addr)
-
-            print("Now receiving file header")
-            buffer = conn.recv(64)
-            
-            l = buffer.decode().split()
-
-            file_name = l[0]
-            file_size = int(l[1])
-
-            print(file_name, file_size)
-
-            with open(file_name, "wb") as rf:
-                remain_byte = file_size
-                while remain_byte > BUFFER_SIZE:
-                    byte_read = conn.recv(BUFFER_SIZE)
-                    rf.write(byte_read)
-                    print("Writing to file")
-                    remain_byte -= BUFFER_SIZE
-
-                #Receive the last packet
-                byte_read = conn.recv(remain_byte)
-                rf.write(byte_read)
-            print(f"Finished receiving {file_name}")
-    print("Successfully received one file")
-    print("close the socket")
+    receive_content()
 
 elif sys.argv[1] == '-t': #specifying the target ip address
     target_ip = sys.argv[2]
     length_argv = len(sys.argv)
     if length_argv > 3: # User specified the files to be sent
+        file_amount = length_argv - 3
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -122,6 +132,13 @@ elif sys.argv[1] == '-t': #specifying the target ip address
                 print("Please check the if the IP address specified is correct.")
                 exit(1)
             
+            file_amount = length_argv - 3
+            print(f"There are {file_amount} files to be sent")
+            #pack thr file_amount into an 8-byte header
+            head_buffer = str(file_amount).encode() + b'\n'
+            head_size = len(head_buffer)
+            head_buffer += b'0' * ( 8 - head_size )
+            s.sendall(head_buffer)
 
             print("Now opening file to be sent")
             for i in range(3, length_argv):
@@ -141,7 +158,7 @@ elif sys.argv[1] == '-t': #specifying the target ip address
                         print("File name is too long, or the size is too big, please use other tools to send this file")
                         exit(1)
                     else:
-                        #Fill the head size to 64 byte
+                        #Fill the header size to 64 byte
                         head_buffer += b'0' * ( 64-head_size )
                     #Send the file name and its size, this header is 64 byte long:
                     

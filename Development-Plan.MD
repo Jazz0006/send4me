@@ -1,8 +1,8 @@
-# T1A3 - Terminal Application - Send For Me
+### T1A3 - Terminal Application - Send For Me
 
-## Software Development Plan
+# Software Development Plan
 
-### **Purpose**
+## **Purpose**
 
 This App is for computers in a LAN network to send and receive files.
 
@@ -10,11 +10,11 @@ It is quite normal nowadays we have multiple devices in our home network, and we
 
 Although we have synchronization software such as Dropbox and OneDrive, we still sometimes just need to quickly send files without login or other additional settings. This `send4me` app will serve as sender and receiver, enable two computers to share files in a very simple way.
 
-### **Target Audience**
+## **Target Audience**
 
 People who have multiple devices in their home, and who need to share files among these devices.
 
-### **Usage**
+## **Usage**
 
 1. On the receiving side, put `send4me` into the folder where to receiving file should be saved, run as server:
 
@@ -30,7 +30,7 @@ People who have multiple devices in their home, and who need to share files amon
 
 In most cases, we just copy the files that to be sent to the folder where `send4me` is located, and run the `send4me`. This will send all those files to the default target device.
 
-### **Features**
+## **Features**
 
 - Server-side
 1. Create a server socket and listen on port 4587. Display the server's IP address on the screen.
@@ -43,7 +43,7 @@ In most cases, we just copy the files that to be sent to the folder where `send4
 2. If a filename is given in input arguments, send that file. Otherwise scan and send all files in the local directory.
 3. When all files are sent, update `./send4me.ini` if a new IP address was given.
 
-### **User Interaction**
+## **User Interaction**
 
 Each time `send4me` runs, it will display a simple help message:
 
@@ -76,6 +76,6 @@ APP will handle below error message
 - No files to be sent
 - Connection fail
 
-### **Control Flow Diagram**
+## **Control Flow Diagram**
 
 ![Flow Diagram](./send4me.svg)
