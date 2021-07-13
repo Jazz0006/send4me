@@ -99,7 +99,7 @@ def receive_content():
     
 
 def send_files(target_ip, file_list):
-    # Function to send all files in {file_list} to {target_ip}
+# Function to send all files in {file_list} to {target_ip}
 
     print(f" Info:   Connecting to host at {target_ip} ...")
 
@@ -194,6 +194,15 @@ def check_empty_file_list(fl):
         print("           Or copy them here and rerun send4me\n\n")
         exit(1)
 
+def update_conf(addr):
+    try:
+        with open("send4me.ini", 'w') as conf:
+            conf.write(addr)
+    except Exception as e:
+        print(" Error:  Cannot update send4me.ini")
+        print(e)
+        exit(1)
+
 
 # Main function
 if __name__ == '__main__':
@@ -232,7 +241,7 @@ if __name__ == '__main__':
     elif sys.argv[1] == "-listen": 
         receive_content()
 
-    elif sys.argv[1] == '-t': #specifying the target ip address
+    elif sys.argv[1] == '-t': # Specifying the target ip address
         target_ip = sys.argv[2]
 
         length_argv = len(sys.argv)
@@ -243,13 +252,16 @@ if __name__ == '__main__':
 
             send_files(target_ip, file_list)
             
-        else: #User did not specify the file to be sent, which mean all files in current folder should be sent
-            #scan and get a list of files in current directory
+        else: # User did not specify the file to be sent, which mean all files in current folder should be sent
+            # Scan and get a list of files in current directory
             file_list = get_file_list('.')
 
             check_empty_file_list
             #send files
             send_files(target_ip, file_list)
+
+        # Save this IP address into the send4me.ini file
+        update_conf(target_ip)
 
     else: #user just specified the files to be sent
         target_ip = get_target_ip_address()
