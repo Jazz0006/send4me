@@ -30,5 +30,7 @@ I designed and implemented below simple protocol for my app:
 |...
 |
 
+## 2021-Jul-13: Prompt status and handle exceptions
 
+Updated status messages. Added code to handle exceptions
 
