@@ -8,6 +8,20 @@ import os
 # Buffer size for sending and receiving files
 BUFFER_SIZE = 4096
 
+def print_intro():
+    print("""
+ Send4Me - A simple tool to transfer files in a LAN network.
+ ----------------------------------------------------------------------
+    Example usage:
+
+    For receiver:
+        send4me -listen
+
+    For sender:
+        send4me -t 192.168.X.X file-to-send.jpg
+ ----------------------------------------------------------------------
+
+    """)
 
 def get_local_ip_address():
 # Function to find the local IP address
@@ -209,19 +223,8 @@ def update_conf(addr):
 # Main function
 if __name__ == '__main__':
     # Print help message:
-    print("""
- Send4Me - A simple tool to transfer files in a LAN network.
- ----------------------------------------------------------------------
-    Example usage:
+    print_intro()
 
-    For receiver:
-        send4me -listen
-
-    For sender:
-        send4me -t 192.168.X.X file-to-send.jpg
- ----------------------------------------------------------------------
-
-    """)
     if len(sys.argv)==1: #There is no input argument
         #Get target IP address from configuration file
 

@@ -36,6 +36,9 @@ cd sender
 cp ../../send4me.sh .
 cp ../../send4me.py .
 
+# Write the TARGET_IP to thr configuration file
+echo $TARGET_IP > send4me.ini
+
 # Create 4 txt file for transmistion
 echo " Step 2:  Preparing 4 files..."
 env > testfile1.txt
@@ -45,7 +48,7 @@ dmesg > testfile4.txt
 echo " Below files will be sent:"
 ls *.txt
 
-echo $TARGET_IP > send4me.ini
+
 
 echo " Step 3: Sending files out ..."
 ./send4me.sh > test02-sender-log.txt
