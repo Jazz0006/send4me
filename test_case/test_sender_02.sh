@@ -12,15 +12,10 @@ then
     exit 1
 fi
 
-if [[ ! -d sender ]]
-then
-    mkdir sender
-fi
-
 # First test the testing target is accessible
 echo " Step 1:   Try to ping the target computer @ $TARGET_IP ..."
 echo
-ping $TARGET_IP -c 4 
+ping $TARGET_IP -c 2 
 if [[ $? != 0 ]]
 then
     echo "Cannot reach the computer at $TARGET_IP."
@@ -31,30 +26,36 @@ else
     echo 
 fi
 
+if [[ -d sender ]]
+then
+    rm -r sender
+fi
+
+mkdir sender
 cd sender
 cp ../../send4me.sh .
 cp ../../send4me.py .
-# Create a txt file for transmistion
-env>testfile1.txt
 
-# Check the txt file exists and its size is bigger than 0
-if [[ -s testfile1.txt ]] 
-then
-    echo
-    echo " Step 2: Sending file: testfile1.txt"
-else
-    echo "Cannot create testfile1.txt for this test case"
-    exit 1
-fi
+# Create 4 txt file for transmistion
+echo " Step 2:  Preparing 4 files..."
+env > testfile1.txt
+ls /bin > testfile2.txt
+cat testfile1.txt testfile2.txt > testfile3.txt
+dmesg > testfile4.txt
+echo " Below files will be sent:"
+ls *.txt
 
-./send4me.sh -t $TARGET_IP testfile1.txt > test01-sender-log.txt
+echo $TARGET_IP > send4me.ini
+
+echo " Step 3: Sending files out ..."
+./send4me.sh > test02-sender-log.txt
 
 if [[ $? == 0 ]]
 then
-    echo " Step 2 Passed."
+    echo " Step 3 Passed."
     echo " Please check the result on the receiver side to make sure the test case is successful."
 else
     echo "!!!Test failed!!!"
-    echo "You can find the output log in test01-sender-log.txt"
+    echo "You can find the output log in test02-sender-log.txt"
     exit 1
 fi

@@ -179,6 +179,8 @@ def get_file_list(path):
         file_list.remove('send4me.ini')
     if 'send4me.py' in file_list:
         file_list.remove('send4me.py')
+    if 'send4me.sh' in file_list:
+        file_list.remove('send4me.py')
     #Remove hidden files:
     file_list = [x for x in file_list if x[0]!='.']
     return file_list
