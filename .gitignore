@@ -1,1 +1,3 @@
 *.docx
+test_case/sender/*
+test_case/receiver/*
