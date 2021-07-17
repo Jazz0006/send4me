@@ -42,7 +42,7 @@ Household and small businesses who have multiple devices, who need to share file
 
 - Analyse input parameters to decide the working mode.
 
-- Server (Receiver):
+- For server (receiver):
 1. Create a socket and listen on port 9587. Display the server's IP address on the screen. Display an error message if the socket cannot be created or binded.
 2. If the client-side connect, create a new socket to receive files. Display an error message if the socket cannot be created.
 3. Analyse the header package and decide the number of files that will be sent.
@@ -55,14 +55,14 @@ Household and small businesses who have multiple devices, who need to share file
 
 <br>
 
-- Sender-side
+- For client (sender):
 
 1. If `-t` parameter exists in the input arguments, use the IP address specified. Otherwise, open the `send4me.ini` file and read the IP address from it. If `send4me.ini` does not exist, prompt an error message, asking the user to provide a target IP address.
 2. Create a socket and connect to the server, prompt an error message if fail.
 3. Decide the list of files for transmission: 
    
    - If one or more file names are given in the input arguments, save those file names to the list. 
-   - Otherwise, scan the current directory, save all files except Send4me itself to the file list. 
+   - Otherwise, scan the current directory, save all files except Send4Me itself to the file list. 
    - Prompt an error message if no files are given and no files can be found in the local directory. 
    
    <br>
@@ -75,12 +75,12 @@ Household and small businesses who have multiple devices, who need to share file
 
    <br>
 
-6. When all files are sent, update `./send4me.ini` if a new IP address was given.
+6. When all files are sent, update the send4me.ini file if a new IP address was given.
 7. Display result
 
 ## **User Interaction**
 
-Each time `send4me` runs, it will display a simple help message:
+Each time Send4Me runs, it will display a simple help message:
 
 <br>
 
@@ -98,10 +98,10 @@ Each time `send4me` runs, it will display a simple help message:
 <br>
 
 - If there is no "-listen' parameter, the app will display the target IP address and try to connect.
-- If connection cannot be established, display the error message:
+- If a connection cannot be established, display the error message:
 ![Sender cannot connect](./media/sender_connect_fail.png)
 
-- After connection is established, display the number of files to be sent, and update the status:
+- After a connection is established, display the number of files to be sent, and update the status:
    * Connected to the server
    * Sending a file
    * Finished sending one file

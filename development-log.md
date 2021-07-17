@@ -36,10 +36,12 @@ Updated status messages. Added code to handle exceptions
 
 ## 2021-Jul-14: Bash script
 
-send4me.sh as a wrapper for send4m.py. This scrpit will check if Python is install or not.
+send4me.sh as a wrapper for send4m.py. This script will check if Python is install or not.
 
 Since send4me.py does not require any additional Python module, there is no environment requirement.
 
 Planning to use Bash script to write test cases. The test script should invoke send4me, and check the output message, and the result of file transfer.
 
+## 2021-Jul-15: Test cases in Bash script
 
+Compiled test cases for send4me.sh in shell script. Utilised variable, condition, and loop in bash script.
