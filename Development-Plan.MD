@@ -1,14 +1,16 @@
 ### T1A3 - Terminal Application - Send For Me
-
+---
 # Software Development Plan
 
 ## **Purpose**
 
-This App provides a simple way for computers in a LAN network to exchange files.
+The Send4Me App provides a simple way for computers in a LAN network to exchange files.
 
 Today it is common to have multiple devices in our home network. We often need to send a file from one device to the other. 
 
-Although we have online software such as Dropbox and OneDrive, we sometimes just need to quickly send files without login or other additional settings. This `send4me` app provides one solution. You can use it to share files between your devices in a vey simple way.
+Although we have online software such as Dropbox and OneDrive, these solutions require you to have an account and login on both devices. When dealing with huge files, it will take hours before the files are synchronised.
+
+The `send4me` app does not need an account and is not envolved with a remote server, files can be transferred directly from one computer to another.
 
 ## **Target Audience**
 
@@ -16,75 +18,99 @@ Household and small businesses who have multiple devices, who need to share file
 
 ## **How to use**
 
-Below is an example of using `send4me` to share files between two computers.
-
-1. On the computer that will receive files, run the app with the command shown below:
+- If you need to receive files, just run Send4Me with "-listen" parameter:
 
    `send4me -listen`
 
-   It will wait for the client to send files.
+   It will wait for the client to send files. Received files will be saved in the current directory.
 
-2. On the computer to send files, run the app with the command shown below:
+- You can send one or multiple files. 
+- You can specify the receiving computer by its IP address. For example:
 
-   `send4me -t 192.168.1.106 IMG001.jpg`
+   `send4me -t 192.168.1.106 IMG001.jpg IMG002.jpg`
 
-   * The "-t" is followed by the target IP address.
-   * You can specify one or more files that need to be sent. If none is given,  `send4me` will send all in the local directory to the target.
+   This will send IMG001.jpg and IMG002.jpg to the computer at 192.168.1.106
 
-   * Alternatively, just run 
-   
-      `send4me` 
-      
-      without any parameter. All files in the local directory will be sent the computer that was the target last time.
+   * Use "-t" parameter to specify the target computer's IP address
+   * You can specify one or more files that need to be sent. If none is given, Send4Me will send all files in the local directory to the target device.
 
-As a typical usecase, we just copy the files to the folder where `send4me` is located, and run the `send4me`. 
+   <br>
+
+3. Just run Send4Me without any parameter. All files in the local directory will be sent to the same computer that was the target last time.
 
 ## **Features**
 
-- Receiver-side
-1. Create a server socket and listen on port 9587. Display the server's IP address on the screen. Display an error message if the socket cannot be created or binded.
+- Analyse input parameters to decide working mode
+
+- Server (Receiver):
+1. Create a socket and listen on port 9587. Display the server's IP address on the screen. Display an error message if the socket cannot be created or binded.
 2. If the client-side connect, create a new socket to receive files. Display an error message if the socket cannot be created.
-3. When the client-side send files, receive those files and save them in the current directory. Display an error message if there is exception in receiving files.
+3. Analyse the header package and decide the number of files that will be sent.
+4. Loop to receive files
+   - Receive file name and file size
+   - Receive file content
+   - Save the received file in the current directory. 
+   - Display an error message if file transfer is interrupted.
+5. Display result
 
 <br>
 
 - Sender-side
 
-1. If `-t` parameter exists in the input arguments, use the IP address that follows it. Otherwise, use the IP address saved in `send4me.ini`. If that `send4me.ini` does not exist, prompt an error message, asking the user to provide a target IP address.
+1. If `-t` parameter exists in the input arguments, use the IP address that followss. Otherwise, open `send4me.ini` file and read the IP address from it. If `send4me.ini` does not exist, prompt an error message, asking the user to provide a target IP address.
 2. Create a socket and connect to the server, prompt an error message if fail.
-3. If one or more file names are given in the input arguments, send those files. Otherwise scan and send all files in the local directory. Prompt the error messages if no files are given and no files can be found in the local directory. Update status of files sending, success or failure. 
-3. When all files are sent, update `./send4me.ini` if a new IP address was given.
+3. Decide the list of files for transmission: 
+   
+   - If one or more file names are given in the input arguments, save those file names to the list. 
+   - Otherwise scan the current directory, save all files except Send4me itself to the file list. 
+   - Prompt an error messages if no files are given and no files can be found in the local directory. 
+   
+   <br>
+   
+4. Send header package, specifying the number of files that will be sent.
+5. Loop and send all the files
+   - Send file name and file size
+   - Send file content
+   - Display progress
+
+   <br>
+
+6. When all files are sent, update `./send4me.ini` if a new IP address was given.
+7. Display result
 
 ## **User Interaction**
 
 Each time `send4me` runs, it will display a simple help message:
 
-> Send4Me - A simple tool to send and receive files for local computers.
+<br>
 
-> Usage:
+- If `-listen` parameter is given, the app will display the local IP address. Prompt the user to connect from the client device
+![Waiting for connection](./media/receiver_waiting.png)
 
-> `send4me -listen` for receiver side
-
-> `send4me -t 192.168.X.X file-to-send.jpg` for sender side
-
-- If unknown parameters are given, an error message will display, and the app exits.
-
-- If `-listen` parameter is given, the app will display the local IP address, which is for the client to connect to. 
-
-   It will also update its status:
+   It will update its status when:
    * Waiting for connection
    * Connected with client
-   * Receiving files
+   * Receiving and received files
    * All files have been received
 
-   User can quit waiting any time by pressing "Ctrl + C", this is also displayed as part of the help message.
+   ![Received successfully](./media/receiver_received.png)
 
-- For the sender side, the app will display the list of the files to be sent, and also update the status:
+<br>
+
+- If there is no "-listen' parameter, the app will display the target IP address and try to connect.
+- If connection cannot be established, display the error message:
+![Sender cannot connect](./media/sender_connect_fail.png)
+
+- After connection is established, display the number of files to be sent, and update the status:
    * Connected to the server
    * Sending a file
    * Finished sending one file
    * Finished sending all files
 
+   ![Sender finished task](./media/sender_finished.png)
+
+   <br>
+
 ## **Control Flow Diagram**
 
-![Flow Diagram](./send4me.svg)
+![Flow Diagram](./media/send4me.svg)

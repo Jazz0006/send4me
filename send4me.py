@@ -121,9 +121,9 @@ def send_files(target_ip, file_list):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
             s.connect((target_ip, 9587))
-            print(" Info:   Connect successful")
+            print(" Info:   Connection established")
         except Exception as e:
-            print("-"*76)
+            print("-"*71)
             print(f" Error:  Cannot connect to host: {target_ip}")
             print("         Please check if send4me is running at the remote host. ")
             print(f"         And the target IP address {target_ip} is correct.\n\n")
@@ -152,7 +152,7 @@ def send_files(target_ip, file_list):
                     head_buffer += str(file_len).encode() + b'\n'
                     head_size = len(head_buffer)
                     if head_size > 64:
-                        print("-"*76)
+                        print("-"*71)
                         print(" Error:  File name is too long, or the size is too big, please use other tools to send this file")
                         exit(1)
                     else:
@@ -172,7 +172,7 @@ def send_files(target_ip, file_list):
                     s.sendall(bytes_read)
                     print(f" Info:   Finished sending {filename}")
             except FileNotFoundError:
-                print("-"*76)
+                print("-"*71)
                 print(f" Error:  File {filename} is not available")
                 print("         Please check the path and the filename.")
                 exit(1)
@@ -203,9 +203,9 @@ def check_empty_file_list(fl):
 # Print the error message if the there is no files to be sent
 
     if fl == []:
-        print("-"*76)
+        print("-"*71)
         print(" Error:  No files to be sent.")
-        print("-"*76)
+        print("-"*71)
         print("           Please specify the files you want to send.")
         print("           Or copy them here and rerun send4me\n\n")
         exit(1)
@@ -231,7 +231,7 @@ if __name__ == '__main__':
         print(" Info:   Running in client mode.\n")
         target_ip = get_target_ip_address()
         if not target_ip: #Failed in getting saved IP address
-            print("-"*76)
+            print("-"*71)
             print(" Error:  Cannot decide the target IP address")
             print("           Please specify the target IP address, for example:")
             print("           send4me -t 192.168.1.105\n\n")
