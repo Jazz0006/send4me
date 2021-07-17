@@ -10,7 +10,7 @@ Today it is common to have multiple devices in our home network. We often need t
 
 Although we have online software such as Dropbox and OneDrive, these solutions require you to have an account and login on both devices. When dealing with huge files, it will take hours before the files are synchronised.
 
-The `send4me` app does not need an account and is not envolved with a remote server, files can be transferred directly from one computer to another.
+The `send4me` app does not need an account and is not involved with a remote server, files can be transferred directly from one computer to another.
 
 ## **Target Audience**
 
@@ -40,7 +40,7 @@ Household and small businesses who have multiple devices, who need to share file
 
 ## **Features**
 
-- Analyse input parameters to decide working mode
+- Analyse input parameters to decide the working mode.
 
 - Server (Receiver):
 1. Create a socket and listen on port 9587. Display the server's IP address on the screen. Display an error message if the socket cannot be created or binded.
@@ -57,13 +57,13 @@ Household and small businesses who have multiple devices, who need to share file
 
 - Sender-side
 
-1. If `-t` parameter exists in the input arguments, use the IP address that followss. Otherwise, open `send4me.ini` file and read the IP address from it. If `send4me.ini` does not exist, prompt an error message, asking the user to provide a target IP address.
+1. If `-t` parameter exists in the input arguments, use the IP address specified. Otherwise, open the `send4me.ini` file and read the IP address from it. If `send4me.ini` does not exist, prompt an error message, asking the user to provide a target IP address.
 2. Create a socket and connect to the server, prompt an error message if fail.
 3. Decide the list of files for transmission: 
    
    - If one or more file names are given in the input arguments, save those file names to the list. 
-   - Otherwise scan the current directory, save all files except Send4me itself to the file list. 
-   - Prompt an error messages if no files are given and no files can be found in the local directory. 
+   - Otherwise, scan the current directory, save all files except Send4me itself to the file list. 
+   - Prompt an error message if no files are given and no files can be found in the local directory. 
    
    <br>
    
@@ -113,4 +113,4 @@ Each time `send4me` runs, it will display a simple help message:
 
 ## **Control Flow Diagram**
 
-![Flow Diagram](./media/send4me.svg)
+![Flow Diagram](./flowchart.png)
